@@ -67,6 +67,79 @@
 
 
 
+# name: Backend CI/CD
+
+# on:
+#   push:
+#     branches: [ main ]
+
+# jobs:
+#   build-and-deploy:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - name: Checkout Code
+#         uses: actions/checkout@v4
+
+#       - name: Setup Node.js
+#         uses: actions/setup-node@v4
+#         with:
+#           node-version: '22'
+#           cache: 'npm'
+#           cache-dependency-path: ./package-lock.json
+
+#       - name: Install & Test
+#         run: |
+#           cd stanley-bank-server
+#           npm ci
+#           npm test || echo "Tests not yet implemented"
+
+#       - name: Build Application
+#         run: |
+#           cd stanley-bank-server
+#           npm run build
+
+#       - name: Configure AWS Credentials
+#         uses: aws-actions/configure-aws-credentials@v4
+#         with:
+#           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#           aws-region: ${{ vars.AWS_REGION }}
+
+#       - name: Login to Amazon ECR
+#         id: login-ecr
+#         uses: aws-actions/amazon-ecr-login@v2
+
+#       - name: Build, Tag, and Push Image
+#         run: |
+#           docker build -t ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_BACKEND_REPO }}:${{ github.sha }} stanley-bank-server
+#           docker push ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_BACKEND_REPO }}:${{ github.sha }}
+
+#       - name: Update K8s Manifest
+#         env:
+#           K8S_REPO: ${{ vars.K8S_REPO_URL }}
+#           IMAGE: ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_BACKEND_REPO }}:${{ github.sha }}
+#         run: |
+#           git clone $K8S_REPO k8s-config
+#           cd k8s-config
+
+#           sed -i "s|image: .*|image: $IMAGE|" backend-deployment.yaml
+
+#           git config user.name "github-actions[bot]"
+#           git config user.email "github-actions[bot]@github.com"
+
+#           git add backend-deployment.yaml
+#           git commit -m "deploy: update backend image to ${{ github.sha }}" || echo "No changes"
+#           git push origin main
+
+
+
+
+
+
+
+
+
 name: Backend CI/CD
 
 on:
@@ -86,18 +159,14 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
-          cache-dependency-path: ./package-lock.json
 
       - name: Install & Test
         run: |
-          cd stanley-bank-server
           npm ci
           npm test || echo "Tests not yet implemented"
 
       - name: Build Application
-        run: |
-          cd stanley-bank-server
-          npm run build
+        run: npm run build
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -110,24 +179,7 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build, Tag, and Push Image
+      - name: Build & Push Image
         run: |
-          docker build -t ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_BACKEND_REPO }}:${{ github.sha }} stanley-bank-server
+          docker build -t ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_BACKEND_REPO }}:${{ github.sha }} .
           docker push ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_BACKEND_REPO }}:${{ github.sha }}
-
-      - name: Update K8s Manifest
-        env:
-          K8S_REPO: ${{ vars.K8S_REPO_URL }}
-          IMAGE: ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_BACKEND_REPO }}:${{ github.sha }}
-        run: |
-          git clone $K8S_REPO k8s-config
-          cd k8s-config
-
-          sed -i "s|image: .*|image: $IMAGE|" backend-deployment.yaml
-
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@github.com"
-
-          git add backend-deployment.yaml
-          git commit -m "deploy: update backend image to ${{ github.sha }}" || echo "No changes"
-          git push origin main
