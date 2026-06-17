@@ -193,19 +193,22 @@ jobs:
           docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
 
-          - name: Update K8s Manifest
+      - name: Update K8s Manifest
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           K8S_REPO: ${{ vars.K8S_REPO_URL }}
-          IMAGE: ${{ vars.ECR_BACKEND_REPO }}:${{ github.sha }}
+          IMAGE: ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_BACKEND_REPO }}:${{ github.sha }}
         run: |
-          git clone $K8S_REPO k8s-config
+          git clone https://$GH_TOKEN@${K8S_REPO#https://} k8s-config
           cd k8s-config
+
           sed -i "s|image: .*|image: $IMAGE|" backend-deployment.yaml
+
           git config user.name "Stanleyoluebube"
           git config user.email "stanleyoluebube171@gmail.com"
-          git add backend-deployment.yaml
-          git commit -m "deploy: update backend image to ${{ github.sha }}"
-          git push origin main    
 
-          
+          git add backend-deployment.yaml
+
+          git commit -m "deploy: update backend image to ${{ github.sha }}" || echo "No changes to commit"
+          git push origin main
+#
