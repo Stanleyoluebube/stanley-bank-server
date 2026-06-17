@@ -74,10 +74,6 @@ on:
   push:
     branches: [ main ]
 
-defaults:
-  run:
-    working-directory: stanley-bank-server
-
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -94,11 +90,13 @@ jobs:
           cache-dependency-path: ./package-lock.json
 
       - name: Install & Test
+        working-directory: stanley-bank-server
         run: |
           npm ci
           npm test || echo "Tests not yet implemented"
 
       - name: Build Application
+        working-directory: stanley-bank-server
         run: npm run build
 
       - name: Configure AWS Credentials
@@ -113,13 +111,9 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build, Tag, and Push Image
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: ${{ vars.ECR_BACKEND_REPO }}
-          IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker build -t ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_BACKEND_REPO }}:${{ github.sha }} stanley-bank-server
+          docker push ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_BACKEND_REPO }}:${{ github.sha }}
 
       - name: Update K8s Manifest
         env:
