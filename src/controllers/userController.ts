@@ -15,7 +15,8 @@ export const UserController = {
 
   async getAccountOverview(req: Request, res: Response) {
     try {
-      const userId = req.user.id; // Set by auth middleware
+      const userId = req.user?.id;
+      if (!userId) return res.status(401).json({ message: 'User not found in request' });
       const balance = await UserService.getBalance(userId);
       const transactions = await UserService.getTransactions(userId);
       res.json({ balance, transactions });

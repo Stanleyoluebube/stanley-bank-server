@@ -23,7 +23,8 @@ export const AdminController = {
   async approvePayment(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const transaction = await AdminService.approvePayment(id);
+      const transactionId = typeof id === 'string' ? id : String(id);
+      const transaction = await AdminService.approvePayment(transactionId);
       res.json({ message: 'Payment approved successfully', transaction });
     } catch (e: any) {
       res.status(400).json({ error: e.message });
@@ -33,7 +34,8 @@ export const AdminController = {
   async declinePayment(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const transaction = await AdminService.declinePayment(id);
+      const transactionId = typeof id === 'string' ? id : String(id);
+      const transaction = await AdminService.declinePayment(transactionId);
       res.json({ message: 'Payment declined successfully', transaction });
     } catch (e: any) {
       res.status(400).json({ error: e.message });
