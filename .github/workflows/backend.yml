@@ -48,20 +48,20 @@
 #           docker build -t $ECR_REPOSITORY:$IMAGE_TAG ./stanley-bank-server
 #           docker push $ECR_REPOSITORY:$IMAGE_TAG
 
-#       - name: Update K8s Manifest
-#         env:
-#           GH_TOKEN: ${{ secrets.GH_TOKEN }}
-#           K8S_REPO: ${{ vars.K8S_REPO_URL }}
-#           IMAGE: ${{ vars.ECR_BACKEND_REPO }}:${{ github.sha }}
-#         run: |
-#           git clone $K8S_REPO k8s-config
-#           cd k8s-config
-#           sed -i "s|image: .*|image: $IMAGE|" backend-deployment.yaml
-#           git config user.name "github-actions[bot]"
-#           git config user.email "github-actions[bot]@github.com"
-#           git add backend-deployment.yaml
-#           git commit -m "deploy: update backend image to ${{ github.sha }}"
-#           git push origin main
+      # - name: Update K8s Manifest
+      #   env:
+      #     GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      #     K8S_REPO: ${{ vars.K8S_REPO_URL }}
+      #     IMAGE: ${{ vars.ECR_BACKEND_REPO }}:${{ github.sha }}
+      #   run: |
+      #     git clone $K8S_REPO k8s-config
+      #     cd k8s-config
+      #     sed -i "s|image: .*|image: $IMAGE|" backend-deployment.yaml
+      #     git config user.name "github-actions[bot]"
+      #     git config user.email "github-actions[bot]@github.com"
+      #     git add backend-deployment.yaml
+      #     git commit -m "deploy: update backend image to ${{ github.sha }}"
+      #     git push origin main
 
 
 
@@ -192,3 +192,18 @@ jobs:
         run: |
           docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+
+          - name: Update K8s Manifest
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          K8S_REPO: ${{ vars.K8S_REPO_URL }}
+          IMAGE: ${{ vars.ECR_BACKEND_REPO }}:${{ github.sha }}
+        run: |
+          git clone $K8S_REPO k8s-config
+          cd k8s-config
+          sed -i "s|image: .*|image: $IMAGE|" backend-deployment.yaml
+          git config user.name "Stanleyoluebube"
+          git config user.email "stanleyoluebube171@gmail.com"
+          git add backend-deployment.yaml
+          git commit -m "deploy: update backend image to ${{ github.sha }}"
+          git push origin main    
