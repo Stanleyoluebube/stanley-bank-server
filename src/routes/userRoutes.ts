@@ -4,5 +4,6 @@ import { authMiddleware } from '../middleware/authMiddleware';
 
 export const userRoutes = Router();
 
+userRoutes.post('/register', UserController.register);
 userRoutes.post('/login', UserController.login);
 userRoutes.get('/overview', authMiddleware, UserController.getAccountOverview);
